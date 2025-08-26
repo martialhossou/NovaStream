@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>NovaStream — Streaming (Démo)</title>
+  <meta name="description" content="Démo de site de streaming type Netflix : héros, catégories, recherche, filtres, modale vidéo, design dark premium. FR/EN."/>
+  <meta name="theme-color" content="#0A0B10"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0A0B10;       /* noir profond */
+      --bg-2:#0E1118;     /* section sombre */
+      --ink:#E9EFFA;      /* texte */
+      --muted:#9AA3B8;    /* texte secondaire */
+      --line:#202538;     /* bordures */
+      --accent:#E50914;   /* rouge streaming */
+      --accent-2:#FF6933; /* second. */
+      --glass:rgba(255,255,255,.06);
+      --glass-b:rgba(255,255,255,.12);
+      --shadow:0 18px 60px rgba(0,0,0,.45);
+      --radius:14px;
+      --maxw:1320px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans",sans-serif;line-height:1.7;overflow-x:hidden}
+    img{max-width:100%;height:auto;display:block}
+    a{color:inherit;text-decoration:none}
+    .container{max-width:var(--maxw);margin:auto;padding-inline:24px}
+
+    /* Header */
+    header{position:sticky;top:0;z-index:80;background:#0B0D14;border-bottom:1px solid var(--line)}
+    .nav{display:flex;align-items:center;justify-content:space-between;min-height:74px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo-mark{width:22px;height:22px;border-radius:6px;background:conic-gradient(from 180deg,#231b1b,var(--accent) 20%,#231b1b 60%,var(--accent) 80%,#231b1b)}
+    .logo{font-weight:900;letter-spacing:.4px}
+    nav ul{display:flex;gap:26px;list-style:none;margin:0;padding:0}
+    nav a{font-weight:800;position:relative}
+    nav a:after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s}
+    nav a:hover:after{width:100%}
+    .actions{display:flex;align-items:center;gap:10px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:.65rem 1rem;border-radius:12px;border:1px solid var(--glass-b);background:linear-gradient(180deg,var(--glass),rgba(255,255,255,.02));color:var(--ink);font-weight:800;backdrop-filter:blur(6px);cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:0;color:#1b0c0b}
+    .input{border:1px solid var(--glass-b);border-radius:12px;background:rgba(255,255,255,.06);color:var(--ink);padding:.6rem .9rem}
+
+    /* Mobile menu (opaque) */
+    .hamburger{display:none;flex-direction:column;gap:4px;border:0;background:#121523;color:#fff;border-radius:10px;padding:10px}
+    .hamburger span{width:24px;height:2px;background:#fff}
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:.25s;z-index:79}
+    .backdrop.show{opacity:1;visibility:visible}
+    .drawer{position:fixed;top:0;right:0;height:100%;width:min(84vw,380px);transform:translateX(100%);transition:.3s;z-index:80;background:#0E1118;border-left:1px solid var(--line);display:flex;flex-direction:column}
+    .drawer.open{transform:translateX(0)}
+    .drawer-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+    .drawer-close{border:0;background:var(--accent);color:#1b0c0b;padding:.55rem 1rem;border-radius:10px;font-weight:900}
+    .drawer-body a{display:block;padding:16px 20px;border-bottom:1px solid var(--line);font-weight:800}
+
+    /* Hero banner */
+    .hero{position:relative;border-bottom:1px solid var(--line);background:
+      radial-gradient(900px 600px at -10% -10%, rgba(229,9,20,.15), transparent 60%),
+      radial-gradient(800px 500px at 120% -20%, rgba(255,105,51,.10), transparent 60%)}
+    .hero .container{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center;min-height:70vh;padding-block:70px}
+    .hero-visual{position:relative;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);background:#121723}
+    .hero-visual img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/10;transform:scale(1);transition:transform .25s ease-out}
+    h1{font-weight:900;font-size:clamp(32px,5.2vw,64px);line-height:1.06;margin:0 0 10px;letter-spacing:.2px}
+    .lead{color:var(--muted);max-width:65ch}
+
+    /* Tools (search/filters) */
+    .tools{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px}
+    select{border:1px solid var(--glass-b);border-radius:12px;background:rgba(255,255,255,.06);color:var(--ink);padding:.6rem .9rem}
+
+    /* Rows/Categories */
+    .row{padding-block:20px}
+    .row h2{margin:0 0 12px;font-size:22px}
+    .rail{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(160px,16vw,220px);gap:12px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+    .rail::-webkit-scrollbar{height:8px}
+    .rail::-webkit-scrollbar-thumb{background:#202536;border-radius:999px}
+    .card{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0f1220}
+    .card img{width:100%;aspect-ratio:2/3;object-fit:cover}
+    .card .grad{position:absolute;inset:auto 0 0 0;height:50%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.7))}
+    .card .meta{position:absolute;left:0;bottom:0;padding:10px}
+    .tag{display:inline-block;padding:.2rem .5rem;border:1px solid var(--glass-b);border-radius:999px;background:rgba(255,255,255,.06);font-weight:800;font-size:12px}
+    .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.25s;background:rgba(0,0,0,.18)}
+    .card:hover .play{opacity:1}
+    .play .btn{border-color:transparent;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#210b0b}
+    .badge{position:absolute;top:8px;left:8px;background:var(--accent);color:#fff;font-weight:900;font-size:12px;border-radius:6px;padding:.2rem .4rem}
+
+    /* Grid (explore) */
+    .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+    @media (max-width:1200px){.grid{grid-template-columns:repeat(5,1fr)}}
+    @media (max-width:1000px){.grid{grid-template-columns:repeat(4,1fr)}}
+    @media (max-width:760px){.hero .container{grid-template-columns:1fr}.tools{grid-template-columns:1fr}.grid{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:540px){nav{display:none}.hamburger{display:flex}.grid{grid-template-columns:repeat(2,1fr)}}
+
+    /* Modal player */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.25s;z-index:90}
+    .modal.show{opacity:1;visibility:visible}
+    .modal-content{width:min(92vw,980px);aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+    .modal-close{position:absolute;top:16px;right:16px;background:var(--accent);border:0;color:#210b0b;font-weight:900;border-radius:10px;padding:.5rem .8rem;cursor:pointer}
+
+    /* Footer & misc */
+    footer{padding:46px 0;border-top:1px solid var(--line);background:#0C0F15;color:#b9bfd0;margin-top:20px}
+    .foot{max-width:var(--maxw);margin:auto;text-align:center;padding-inline:24px}
+    .foot a{color:#ffa88a;text-decoration:underline}
+    .to-top{position:fixed;right:16px;bottom:16px;width:46px;height:46px;border-radius:999px;border:1px solid var(--glass-b);background:linear-gradient(180deg,var(--glass),rgba(255,255,255,.02));backdrop-filter:blur(6px);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;visibility:hidden;transition:.25s;z-index:85}
+    .to-top.show{opacity:1;visibility:visible}
+
+    /* Popup crédit */
+    .popup{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.70);opacity:0;visibility:hidden;transition:.3s;z-index:95}
+    .popup.show{opacity:1;visibility:visible}
+    .popup-content{background:#0F121A;border:1px solid var(--line);border-radius:20px;max-width:520px;width:92%;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,.6);text-align:center}
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#home"><span class="logo-mark"></span><span class="logo">NovaStream</span></a>
+      <nav>
+        <ul>
+          <li><a href="#trending" data-i18n="nav.trending">Tendances</a></li>
+          <li><a href="#movies" data-i18n="nav.movies">Films</a></li>
+          <li><a href="#series" data-i18n="nav.series">Séries</a></li>
+          <li><a href="#explore" data-i18n="nav.explore">Explorer</a></li>
+          <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="actions">
+        <input class="input" id="search" placeholder="Rechercher…"/>
+        <select id="genre">
+          <option value="" selected>Genres</option>
+          <option>Action</option><option>Aventure</option><option>Comédie</option><option>Drame</option>
+          <option>Science-Fiction</option><option>Horreur</option><option>Romance</option><option>Animation</option>
+        </select>
+        <button class="btn" id="lang">FR / EN</button>
+        <button class="hamburger" id="burger" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <!-- Drawer mobile -->
+    <div class="backdrop" id="backdrop"></div>
+    <aside class="drawer" id="drawer" aria-hidden="true">
+      <div class="drawer-head"><strong>Menu</strong><button class="drawer-close" id="drawerClose">Fermer ✕</button></div>
+      <div class="drawer-body">
+        <a href="#trending">Tendances</a><a href="#movies">Films</a><a href="#series">Séries</a><a href="#explore">Explorer</a><a href="#contact">Contact</a>
+      </div>
+    </aside>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="container">
+      <div>
+        <h1 data-i18n="hero.title">Votre cinéma, sans quitter le canapé.</h1>
+        <p class="lead" data-i18n="hero.lead">Des milliers de titres en HD/4K (démo). Installez-vous, on appuie sur “Lecture”.</p>
+        <div class="tools">
+          <input class="input" id="homeSearch" placeholder="Titre, acteur, réalisateur…">
+          <select id="homeGenre">
+            <option value="">Tous les genres</option>
+            <option>Action</option><option>Drame</option><option>Comédie</option><option>Science-Fiction</option>
+          </select>
+          <select id="homeYear">
+            <option value="">Année</option><option>2025</option><option>2024</option><option>2023</option><option>Avant 2023</option>
+          </select>
+        </div>
+        <div style="margin-top:12px"><span class="tag">Sans pubs</span> <span class="tag">Reprise multi-appareils</span> <span class="tag">Contrôle parental</span></div>
+      </div>
+      <div class="hero-visual">
+        <img src="https://picsum.photos/seed/novastream-hero/1600/1000" alt="Bandeau films en vedette"/>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trending row -->
+  <section class="container row" id="trending">
+    <h2 data-i18n="row.trending">Tendances</h2>
+    <div class="rail" id="rail-trending"></div>
+  </section>
+
+  <!-- Movies row -->
+  <section class="container row" id="movies">
+    <h2 data-i18n="row.movies">Films</h2>
+    <div class="rail" id="rail-movies"></div>
+  </section>
+
+  <!-- Series row -->
+  <section class="container row" id="series">
+    <h2 data-i18n="row.series">Séries</h2>
+    <div class="rail" id="rail-series"></div>
+  </section>
+
+  <!-- Explore grid -->
+  <section class="container row" id="explore">
+    <h2 data-i18n="row.explore">Explorer tout</h2>
+    <div class="grid" id="grid-explore"></div>
+  </section>
+
+  <!-- CTA Contact -->
+  <section id="contact" class="container">
+    <div class="card" style="padding:18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div>
+        <h3 style="margin:0" data-i18n="cta.title">Besoin d’une démo complète ?</h3>
+        <p class="muted" data-i18n="cta.lead">Parlez directement avec nous sur WhatsApp.</p>
+      </div>
+      <a class="btn primary" href="https://wa.me/22952964028" target="_blank" rel="noopener" data-i18n="cta.btn">Discuter</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="foot">
+      <div>© <span id="year"></span> NovaStream (démo) — <span data-i18n="footer.rights">Tous droits réservés</span>.</div>
+      <div class="muted" data-i18n="footer.addr">Catalogue fictif. Aucune œuvre réelle n’est diffusée.</div>
+      <div class="muted">Site de démonstration créé par <strong>Martial HOSSOU</strong>, CEO de
+        <a href="https://facebook.com/creativeentreprise" target="_blank" rel="noopener"><strong>CREATIVE ENTREPRISE</strong></a>.
+      </div>
+    </div>
+  </footer>
+
+  <!-- To top -->
+  <button class="to-top" id="toTop" aria-label="Retour en haut">↑</button>
+
+  <!-- Video Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content" id="modalContent" role="dialog" aria-label="Lecteur vidéo"></div>
+    <button class="modal-close" id="modalClose">Fermer ✕</button>
+  </div>
+
+  <!-- Popup crédit -->
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <h3>Créé par Martial HOSSOU</h3>
+      <p>Ce site a été conçu par Martial HOSSOU, CEO de CREATIVE ENTREPRISE.</p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
+        <a class="btn primary" href="https://facebook.com/creativeentreprise" target="_blank" rel="noopener">En savoir plus</a>
+        <button class="btn" id="closePopup">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===== Demo dataset (affiches HD via picsum) ===== */
+    const MOVIES=[
+      {id:'m1',t:'Crimson Horizon',y:2025,g:'Action',type:'Film',img:'https://picsum.photos/seed/crimson-h/600/900',yt:'https://www.youtube.com/embed/ScMzIvxBSi4'},
+      {id:'m2',t:'Neon City',y:2024,g:'Science-Fiction',type:'Film',img:'https://picsum.photos/seed/neoncity/600/900',yt:'https://www.youtube.com/embed/ysz5S6PUM-U'},
+      {id:'m3',t:'Laughter Lines',y:2023,g:'Comédie',type:'Film',img:'https://picsum.photos/seed/laughter/600/900',yt:'https://www.youtube.com/embed/2Vv-BfVoq4g'},
+      {id:'m4',t:'Deep Woods',y:2023,g:'Horreur',type:'Film',img:'https://picsum.photos/seed/deepwoods/600/900',yt:'https://www.youtube.com/embed/Z1BCujX3pw8'},
+      {id:'m5',t:'Royal Hearts',y:2025,g:'Romance',type:'Film',img:'https://picsum.photos/seed/royalhearts/600/900',yt:'https://www.youtube.com/embed/aqz-KE-bpKQ'},
+      {id:'m6',t:'Quantum Run',y:2024,g:'Science-Fiction',type:'Film',img:'https://picsum.photos/seed/quantumrun/600/900',yt:'https://www.youtube.com/embed/6ZfuNTqbHE8'}
+    ];
+    const SERIES=[
+      {id:'s1',t:'Empire of Dust',y:2024,g:'Drame',type:'Série',img:'https://picsum.photos/seed/empiredust/600/900',yt:'https://www.youtube.com/embed/sNPnbI1arSE'},
+      {id:'s2',t:'Solar Children',y:2025,g:'Aventure',type:'Série',img:'https://picsum.photos/seed/solarchild/600/900',yt:'https://www.youtube.com/embed/kXYiU_JCYtU'},
+      {id:'s3',t:'Byte & Bones',y:2023,g:'Animation',type:'Série',img:'https://picsum.photos/seed/bytebones/600/900',yt:'https://www.youtube.com/embed/dQw4w9WgXcQ'},
+      {id:'s4',t:'Harbor Lights',y:2024,g:'Drame',type:'Série',img:'https://picsum.photos/seed/harborlights/600/900',yt:'https://www.youtube.com/embed/tAGnKpE4NCI'},
+      {id:'s5',t:'Zero Signal',y:2025,g:'Action',type:'Série',img:'https://picsum.photos/seed/zerosignal/600/900',yt:'https://www.youtube.com/embed/5NV6Rdv1a3I'},
+      {id:'s6',t:'Moon Hotel',y:2023,g:'Comédie',type:'Série',img:'https://picsum.photos/seed/moonhotel/600/900',yt:'https://www.youtube.com/embed/JGwWNGJdvx8'}
+    ];
+    const CATALOG=[...MOVIES,...SERIES];
+
+    /* ===== Utilities ===== */
+    const $=s=>document.querySelector(s);
+    const $$=s=>document.querySelectorAll(s);
+    const yearSel=$('#homeYear');
+    const gridExplore=$('#grid-explore');
+    const rails={
+      trending:$('#rail-trending'),
+      movies:$('#rail-movies'),
+      series:$('#rail-series')
+    };
+
+    function card(item,badge=''){
+      return `
+      <article class="card" data-title="${item.t.toLowerCase()}" data-genre="${item.g}" data-year="${item.y}" data-type="${item.type}">
+        ${badge?`<span class="badge">${badge}</span>`:''}
+        <img src="${item.img}" alt="${item.t} — ${item.type}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <div class="grad"></div>
+        <div class="meta"><div class="tag">${item.g}</div></div>
+        <div class="play"><button class="btn primary" data-play="${item.yt}" data-title="${item.t}">▶ Lire</button></div>
+      </article>`;
+    }
+
+    function render(){
+      rails.trending.innerHTML = [MOVIES[0],SERIES[1],MOVIES[2],SERIES[4],MOVIES[4],SERIES[0]].map((x,i)=>card(x,i<3?'Nouveau':'Top')).join('');
+      rails.movies.innerHTML = MOVIES.map(x=>card(x)).join('');
+      rails.series.innerHTML = SERIES.map(x=>card(x)).join('');
+      gridExplore.innerHTML = CATALOG.map(x=>card(x)).join('');
+    }
+    render();
+
+    /* ===== Search & filters ===== */
+    function filterAll(q='',genre='',year=''){
+      const ql=q.trim().toLowerCase();
+      $$('.card').forEach(el=>{
+        const t=el.dataset.title, g=el.dataset.genre, y=el.dataset.year;
+        const okQ=!ql || t.includes(ql);
+        const okG=!genre || g===genre;
+        const okY=!year || (year==='Avant 2023' ? (+y<2023) : (y===year));
+        el.style.display = (okQ && okG && okY) ? '' : 'none';
+      });
+    }
+    const search=$('#search'), homeSearch=$('#homeSearch'), genre=$('#genre'), homeGenre=$('#homeGenre');
+    [search,homeSearch,genre,homeGenre,yearSel].forEach(el=>el?.addEventListener('input',()=>filterAll(search.value||homeSearch.value, genre.value||homeGenre.value, yearSel.value)));
+
+    /* ===== Modal YouTube player (embed) ===== */
+    const modal=$('#modal'), modalContent=$('#modalContent'), modalClose=$('#modalClose');
+    function openPlayer(url,title){
+      modal.classList.add('show');
+      modalContent.innerHTML = `<iframe width="100%" height="100%" src="${url}?autoplay=1&rel=0&modestbranding=1" title="${title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;" allowfullscreen></iframe>`;
+    }
+    function closePlayer(){
+      modal.classList.remove('show');
+      modalContent.innerHTML='';
+    }
+    document.body.addEventListener('click',e=>{
+      const btn=e.target.closest('[data-play]');
+      if(btn){ openPlayer(btn.getAttribute('data-play'), btn.getAttribute('data-title')); }
+    });
+    modalClose.addEventListener('click',closePlayer);
+    modal.addEventListener('click',e=>{ if(e.target===modal) closePlayer(); });
+
+    /* ===== Drawer mobile ===== */
+    const drawer=$('#drawer'),burger=$('#burger'),backdrop=$('#backdrop'),drawerClose=$('#drawerClose');
+    const openDrawer=()=>{drawer.classList.add('open');backdrop.classList.add('show');drawer.setAttribute('aria-hidden','false')}
+    const closeDrawer=()=>{drawer.classList.remove('open');backdrop.classList.remove('show');drawer.setAttribute('aria-hidden','true')}
+    burger.addEventListener('click',openDrawer);drawerClose.addEventListener('click',closeDrawer);backdrop.addEventListener('click',closeDrawer);
+
+    /* ===== Back to top ===== */
+    const toTop=$('#toTop')||(()=>{const b=document.createElement('button');b.id='toTop';b.className='to-top';b.textContent='↑';document.body.appendChild(b);return b;})();
+    const showTop=()=>{window.scrollY>400?toTop.classList.add('show'):toTop.classList.remove('show')}
+    window.addEventListener('scroll',showTop,{passive:true});
+    toTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+    /* ===== i18n ===== */
+    const I18N={
+      fr:{'nav.trending':'Tendances','nav.movies':'Films','nav.series':'Séries','nav.explore':'Explorer','nav.contact':'Contact',
+          'hero.title':'Votre cinéma, sans quitter le canapé.','hero.lead':'Des milliers de titres en HD/4K (démo). Installez-vous, on appuie sur “Lecture”.',
+          'row.trending':'Tendances','row.movies':'Films','row.series':'Séries','row.explore':'Explorer tout',
+          'cta.title':'Besoin d’une démo complète ?','cta.lead':'Parlez directement avec nous sur WhatsApp.','cta.btn':'Discuter',
+          'footer.rights':'Tous droits réservés','footer.addr':'Catalogue fictif. Aucune œuvre réelle n’est diffusée.'},
+      en:{'nav.trending':'Trending','nav.movies':'Movies','nav.series':'Series','nav.explore':'Explore','nav.contact':'Contact',
+          'hero.title':'Your cinema, without leaving the couch.','hero.lead':'Thousands of HD/4K titles (demo). Get comfy — we’ll hit play.',
+          'row.trending':'Trending','row.movies':'Movies','row.series':'Series','row.explore':'Explore all',
+          'cta.title':'Want a full demo?','cta.lead':'Chat with us on WhatsApp.','cta.btn':'Chat',
+          'footer.rights':'All rights reserved','footer.addr':'Fictitious catalog. No real works are streamed.'}
+    };
+    function setLocale(loc){
+      document.querySelectorAll('[data-i18n]').forEach(el=>{
+        const k=el.getAttribute('data-i18n'); if(I18N[loc][k]) el.textContent=I18N[loc][k];
+      });
+      document.documentElement.lang=(loc==='fr')?'fr':'en';
+      localStorage.setItem('NOVA_LANG',loc);
+    }
+    const langBtn=$('#lang');
+    const saved=localStorage.getItem('NOVA_LANG')||(navigator.language?.startsWith('fr')?'fr':'en');
+    setLocale(saved);
+    langBtn.addEventListener('click',()=>setLocale(localStorage.getItem('NOVA_LANG')==='fr'?'en':'fr'));
+
+    /* ===== Popup 10s ===== */
+    document.getElementById('year').textContent=new Date().getFullYear();
+    const popup=$('#popup'),closePopup=$('#closePopup');
+    setTimeout(()=>popup.classList.add('show'), 10000);
+    closePopup?.addEventListener('click',()=>popup.classList.remove('show'));
+  </script>
+</body>
+</html>
