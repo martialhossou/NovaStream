@@ -73,6 +73,12 @@ header .nav * { pointer-events:auto; }
     .tab.active{background:linear-gradient(90deg,var(--accent),var(--accent2));border:0;color:#1b0c0b}
     .dash{border:1px solid var(--line);background:#0E1118;border-radius:14px;padding:14px;margin-top:10px}
     .muted{color:#a5aec6}
+	  /* ====== Hotfix clics nav vs pub ====== */
+header{ position: relative; z-index: 10; }          /* le header crée sa pile */
+.nav{ position: relative; z-index: 2147483647; }    /* tout en haut (au-dessus de toute pub) */
+.ad-header{ position: relative; z-index: 5; overflow: hidden; }
+.ad-header iframe, .ad-header ins, .ad-header div{ display:block; max-width:100%; height:auto; }
+
   </style>
 </head>
 <body>
