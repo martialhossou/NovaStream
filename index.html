@@ -9,6 +9,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
+	  /* Assure que la barre avec les boutons est au-dessus de tout */
+.nav{ position: relative; z-index: 5; }
+
+/* La zone pub reste en dessous de la nav */
+.ad-header{ position: relative; z-index: 1; overflow: hidden; }
+
+/* Empêche l’iframe pub de déborder et de recouvrir la nav */
+.ad-header iframe{ display:block; max-width:100%; height:auto; }
+
+/* Sécurise les clics sur la nav */
+header .nav * { pointer-events:auto; }
+
     :root{--bg:#0A0B10;--panel:#0E1118;--ink:#E9EFFA;--muted:#A5AEC6;--line:#202538;--accent:#E50914;--accent2:#FF6933;--radius:14px;--maxw:1100px}
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
