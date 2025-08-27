@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NovaStream — Mobile First</title>
+  <meta name="theme-color" content="#0A0B10" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0A0B10;--panel:#0E1118;--ink:#E9EFFA;--muted:#A5AEC6;--line:#202538;--accent:#E50914;--accent2:#FF6933;--radius:14px;--maxw:1100px}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.6}
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+
+    /* Header */
+    header{position:sticky;top:0;z-index:50;background:#0B0D14;border-bottom:1px solid var(--line)}
+    .nav{max-width:var(--maxw);margin:auto;padding:10px 14px;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
+    .mark{width:18px;height:18px;border-radius:6px;background:conic-gradient(from 200deg,#231b1b,var(--accent) 25%,#231b1b 60%,#231b1b 85%)}
+    .search{grid-column:1/-1;display:flex;gap:8px;border:1px solid var(--line);background:#101425;border-radius:10px;padding:8px}
+    .search input{flex:1;background:transparent;border:0;color:var(--ink);outline:0}
+    .actions{display:flex;gap:8px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:.55rem .8rem;border-radius:10px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));color:#fff;font-weight:800;cursor:pointer}
+    .btn.primary{border:0;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#1b0c0b}
+
+    /* Ad header */
+    .ad-header{border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;justify-content:center;align-items:center;min-height:68px}
+
+    /* Hero */
+    .hero{background:radial-gradient(900px 600px at -10% -10%,rgba(229,9,20,.14),transparent 60%),radial-gradient(800px 500px at 120% -20%,rgba(255,105,51,.1),transparent 60%);border-bottom:1px solid var(--line)}
+    .hero .wrap{max-width:var(--maxw);margin:auto;padding:28px 14px;display:grid;gap:16px}
+    .hero h1{margin:0;font-size:clamp(22px,6vw,36px);line-height:1.1}
+    .lead{color:var(--muted)}
+
+    /* Sections */
+    main{max-width:var(--maxw);margin:auto;padding:0 14px}
+    section{padding:16px 0}
+    h2{margin:0 0 10px;font-size:18px}
+    .rail{display:grid;grid-auto-flow:column;grid-auto-columns:44vw;gap:10px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+    @media(min-width:640px){.rail{grid-auto-columns:200px}}
+    .card{position:relative;border:1px solid var(--line);background:#0f1220;border-radius:12px;overflow:hidden;scroll-snap-align:start}
+    .poster{aspect-ratio:2/3;object-fit:cover;width:100%;background:#0c0f18}
+    .meta{position:absolute;left:0;bottom:0;padding:8px;display:flex;gap:6px}
+    .chip{font-size:11px;border:1px solid #273049;background:#121829;border-radius:999px;padding:.15rem .45rem;color:#cbd5e1}
+    .fav{position:absolute;top:8px;right:8px;background:#151a27;border:1px solid #2a3246;border-radius:10px;color:#cbd5e1;font-size:12px;padding:.25rem .5rem;cursor:pointer}
+    .playbar{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);opacity:0;transition:.25s}
+    .card:hover .playbar{opacity:1}
+
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    @media(min-width:640px){.grid{grid-template-columns:repeat(4,1fr)}}
+    @media(min-width:960px){.grid{grid-template-columns:repeat(5,1fr)}}
+
+    /* Footer */
+    footer{padding:24px 14px;border-top:1px solid var(--line);text-align:center;color:#b8c1d6}
+
+    /* Modals */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.2s;z-index:60}
+    .modal.show{opacity:1;visibility:visible}
+    .sheet{width:min(92vw,520px);border-radius:14px;background:#0F121A;border:1px solid var(--line);padding:16px}
+    .sheet h3{margin:0 0 8px}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .input{width:100%;border:1px solid #2a3246;background:#111627;color:#e9effa;border-radius:10px;padding:.6rem .75rem}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+
+    .box{width:min(94vw,980px);aspect-ratio:16/9;border-radius:14px;background:#000;border:1px solid var(--line);overflow:hidden}
+    .top-right{position:absolute;top:10px;right:10px;display:flex;gap:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <a class="brand" href="#"><span class="mark"></span><span>NovaStream</span></a>
+      <div class="actions">
+        <button class="btn" id="btnLogin">Se connecter</button>
+        <button class="btn primary" id="btnSignup">Créer un compte</button>
+      </div>
+      <div class="search"><input id="q" type="search" placeholder="Rechercher un film, un genre…"/></div>
+    </div>
+    <div class="ad-header">
+      <!-- Adsterra Header Tag ici -->
+      <div style="font-size:12px;color:#aeb6cb">Espace pub (Header)</div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <h1>Votre cinéma, pensé d’abord pour le mobile.</h1>
+      <p class="lead">Lecture libre (YouTube). Compte requis uniquement pour Favoris & Profils.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" onclick="document.getElementById('rail-trending').scrollIntoView({behavior:'smooth'})">Voir les tendances</button>
+        <button class="btn" onclick="document.getElementById('grid').scrollIntoView({behavior:'smooth'})">Explorer</button>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section>
+      <h2>Tendances</h2>
+      <div class="rail" id="rail-trending"></div>
+    </section>
+    <section>
+      <h2>Films</h2>
+      <div class="rail" id="rail-films"></div>
+    </section>
+    <section>
+      <h2>Séries</h2>
+      <div class="rail" id="rail-series"></div>
+    </section>
+    <section>
+      <h2>Explorer</h2>
+      <div class="grid" id="grid"></div>
+      <div class="ad-header" style="margin-top:10px">
+        <!-- Adsterra In-content Tag ici -->
+        <div style="font-size:12px;color:#aeb6cb">Espace pub (In-content)</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> NovaStream — Lecteur YouTube officiel. <a href="#" id="lnkCGU">CGU</a> · <a href="#" id="lnkRetrait">Retrait</a> · <a href="#" id="lnkMentions">Mentions</a>
+  </footer>
+
+  <!-- Modale Player -->
+  <div class="modal" id="mPlayer" aria-hidden="true">
+    <div class="box">
+      <div class="top-right"><button class="btn" id="closePlayer">Fermer ✕</button></div>
+      <div id="mountPlayer"></div>
+    </div>
+  </div>
+
+  <!-- Modale Auth -->
+  <div class="modal" id="mAuth">
+    <div class="sheet">
+      <h3 id="authTitle">Se connecter</h3>
+      <div class="row">
+        <input class="input" id="authEmail" type="email" placeholder="Email"/>
+        <input class="input" id="authPass" type="password" placeholder="Mot de passe"/>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="authSwitch">Créer un compte</button>
+        <button class="btn primary" id="authSubmit">Valider</button>
+      </div>
+      <div class="row" style="margin-top:6px"><a href="#" id="authReset">Mot de passe oublié ?</a></div>
+    </div>
+  </div>
+
+  <!-- Soft-wall Favoris -->
+  <div class="modal" id="mWall">
+    <div class="sheet">
+      <h3>Crée un compte pour enregistrer tes favoris</h3>
+      <p class="lead" style="font-size:14px">Tu pourras reprendre sur tous tes appareils.</p>
+      <div class="modal-actions">
+        <button class="btn" id="wallLater">Plus tard</button>
+        <button class="btn primary" id="wallGo">Se connecter / Créer un compte</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale Légal -->
+  <div class="modal" id="mLegal">
+    <div class="sheet">
+      <h3 id="legalTitle">Document</h3>
+      <div id="legalBody" style="max-height:60vh;overflow:auto">
+        <p><strong>CGU (exemple):</strong> NovaStream référence des vidéos YouTube officielles/domaine public/CC. Aucune vidéo n’est hébergée ici.</p>
+        <p><strong>Retrait (exemple):</strong> Envoyez l’URL et la preuve de droits. Nous dépublierons après vérification.</p>
+        <p><strong>Mentions (exemple):</strong> Contact: contact@exemple.com</p>
+      </div>
+      <div class="modal-actions"><button class="btn primary" id="legalClose">Fermer</button></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    // === RENSEIGNE CES DEUX VALEURS ===
+    const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY";
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+    const rails={trending:$('#rail-trending'), films:$('#rail-films'), series:$('#rail-series')};
+    const grid=$('#grid'); const q=$('#q'); $('#year').textContent=new Date().getFullYear?.()||new Date().getFullYear();
+
+    /* Player */
+    const mPlayer=$('#mPlayer'), mountPlayer=$('#mountPlayer');
+    $('#closePlayer').addEventListener('click',()=>{mPlayer.classList.remove('show');mountPlayer.innerHTML='';});
+    function openPlayer(vid,title){ mPlayer.classList.add('show'); mountPlayer.innerHTML=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${vid}?autoplay=1&rel=0&modestbranding=1" title="${title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`; }
+
+    /* Auth */
+    const mAuth=$('#mAuth'); let authMode='login';
+    $('#btnLogin').addEventListener('click',()=>openAuth('login'));
+    $('#btnSignup').addEventListener('click',()=>openAuth('signup'));
+    $('#authSwitch').addEventListener('click',()=>openAuth(authMode==='login'?'signup':'login'));
+    function openAuth(mode){authMode=mode;$('#authTitle').textContent=mode==='login'?'Se connecter':'Créer un compte';mAuth.classList.add('show');}
+    function closeAuth(){mAuth.classList.remove('show');}
+    $('#authSubmit').addEventListener('click',async()=>{
+      const email=$('#authEmail').value.trim(), pass=$('#authPass').value;
+      if(!email||!pass) return alert('Email et mot de passe requis');
+      if(authMode==='signup'){ const {error}=await sb.auth.signUp({email, password:pass}); if(error) return alert(error.message); }
+      else { const {error}=await sb.auth.signInWithPassword({email, password:pass}); if(error) return alert(error.message); }
+      await ensureProfile(); closeAuth(); alert('Connecté');
+    });
+    $('#authReset').addEventListener('click',async e=>{
+      e.preventDefault(); const email=$('#authEmail').value.trim(); if(!email) return alert('Entrez votre email');
+      const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.href}); if(error) alert(error.message); else alert('E-mail envoyé');
+    });
+
+    async function ensureProfile(){
+      try{ await sb.rpc('fn_init_account'); }catch{}
+      let {data:profs}=await sb.from('profiles').select('id,name').limit(1);
+      if(!profs||!profs.length){ await sb.rpc('fn_create_profile',{profile_name:'Profil 1'}); ({data:profs}=await sb.from('profiles').select('id,name').limit(1)); }
+      if(profs&&profs[0]) localStorage.setItem('NS_PROFILE_ID',profs[0].id);
+    }
+    (async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) await ensureProfile(); })();
+
+    /* Legal */
+    const mLegal=$('#mLegal');
+    $('#lnkCGU').addEventListener('click',e=>{e.preventDefault();openLegal('CGU','<p>Utilisation autorisée via YouTube.</p>');});
+    $('#lnkRetrait').addEventListener('click',e=>{e.preventDefault();openLegal('Procédure de retrait','<p>Contact: contact@exemple.com</p>');});
+    $('#lnkMentions').addEventListener('click',e=>{e.preventDefault();openLegal('Mentions légales','<p>Responsable: Vous.</p>');});
+    $('#legalClose').addEventListener('click',()=>mLegal.classList.remove('show'));
+    function openLegal(t,html){ $('#legalTitle').textContent=t; $('#legalBody').innerHTML=html; mLegal.classList.add('show'); }
+
+    /* Soft-wall */
+    $('#wallLater').addEventListener('click',()=>$('#mWall').classList.remove('show'));
+    $('#wallGo').addEventListener('click',()=>{ $('#mWall').classList.remove('show'); openAuth('login'); });
+
+    /* Data */
+    function card(it){
+      const poster = it.thumbnail_url || `https://img.youtube.com/vi/${it.youtube_id}/hqdefault.jpg`;
+      const g = (it.genres && it.genres.length ? it.genres[0] : '—');
+      return `
+        <article class="card" data-title="${(it.title||'').toLowerCase()}">
+          <img class="poster" src="${poster}" alt="${it.title||'Film'}">
+          <div class="meta"><span class="chip">${g}</span><span class="chip">${it.year||''}</span></div>
+          <button class="fav" data-fav="${it.id}">+ Favori</button>
+          <div class="playbar"><button class="btn primary" data-play="${it.youtube_id}" data-title="${it.title||''}">▶ Lire</button></div>
+        </article>`;
+    }
+    async function fetchVideos(opts={}){
+      let q = sb.from('videos').select('*').limit(opts.limit||30);
+      if(opts.where){ q = opts.where(q); }
+      const {data,error}=await q; if(error){ console.warn(error); return []; }
+      return data||[];
+    }
+    async function render(){
+      const [tr,films,series,all] = await Promise.all([
+        fetchVideos({limit:12, where:qb=>qb.order('published_at',{ascending:false})}),
+        fetchVideos({limit:16, where:qb=>qb.eq('type','Film')}),
+        fetchVideos({limit:16, where:qb=>qb.eq('type','Série')}),
+        fetchVideos({limit:40})
+      ]);
+      rails.trending.innerHTML = tr.map(card).join('');
+      rails.films.innerHTML = films.map(card).join('');
+      rails.series.innerHTML = series.map(card).join('');
+      grid.innerHTML = all.map(card).join('');
+    }
+    render();
+
+    /* Search client-side */
+    const qEl = q;
+    qEl.addEventListener('input',()=>{
+      clearTimeout(qEl._t); qEl._t=setTimeout(()=>{
+        const term=(qEl.value||'').trim().toLowerCase();
+        $$('.card').forEach(el=>{const t=el.dataset.title; el.style.display=!term||t.includes(term)?'':'';});
+      },120);
+    });
+
+    /* Events: play + fav */
+    document.body.addEventListener('click',async e=>{
+      const p=e.target.closest('[data-play]'); if(p){openPlayer(p.dataset.play,p.dataset.title); return;}
+      const f=e.target.closest('[data-fav]'); if(f){
+        const {data:{session}}=await sb.auth.getSession();
+        if(!session){ $('#mWall').classList.add('show'); return; }
+        const profileId=localStorage.getItem('NS_PROFILE_ID'); if(!profileId) return alert('Profil introuvable, reconnectez-vous.');
+        const {error}=await sb.from('favorites').insert({profile_id:profileId, video_id:f.dataset.fav});
+        if(error){ if(error.code==='23505') alert('Déjà en favoris'); else alert(error.message); return; }
+        f.textContent='✓ Favori';
+      }
+    });
+  </script>
+</body>
+</html>
