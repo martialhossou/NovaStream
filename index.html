@@ -1,392 +1,319 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>NovaStream — Streaming (Démo)</title>
-  <meta name="description" content="Démo de site de streaming type Netflix : héros, catégories, recherche, filtres, modale vidéo, design dark premium. FR/EN."/>
-  <meta name="theme-color" content="#0A0B10"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NovaStream • Tout-en-un (Front + Auth + Favoris)</title>
+  <meta name="description" content="NovaStream — streaming façon Netflix : lecture libre (YouTube), Auth e-mail+mot de passe, favoris, pubs Adsterra, connectée à Supabase." />
+  <meta name="theme-color" content="#0A0B10" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#0A0B10;
-      --bg-2:#0E1118;
-      --ink:#E9EFFA;
-      --muted:#9AA3B8;
-      --line:#202538;
-      --accent:#E50914;
-      --accent-2:#FF6933;
-      --glass:rgba(255,255,255,.06);
-      --glass-b:rgba(255,255,255,.12);
-      --shadow:0 18px 60px rgba(0,0,0,.45);
-      --radius:14px;
-      --maxw:1320px;
-    }
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans",sans-serif;line-height:1.7;overflow-x:hidden}
-    img{max-width:100%;height:auto;display:block}
+    :root{ --bg:#0A0B10; --panel:#0E1118; --ink:#E9EFFA; --muted:#9AA3B8; --line:#202538;
+           --accent:#E50914; --accent2:#FF6933; --card:#0f1220; --radius:14px; --maxw:1240px; --shadow:0 20px 60px rgba(0,0,0,.45);}
+    *{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;line-height:1.65}
     a{color:inherit;text-decoration:none}
-    .container{max-width:var(--maxw);margin:auto;padding-inline:24px}
-
-    /* ===== Header ===== */
-    header{position:sticky;top:0;z-index:80;background:#0B0D14;border-bottom:1px solid var(--line)}
-    .nav{display:flex;align-items:center;gap:14px;min-height:70px}
+    /* Header */
+    header{position:sticky;top:0;z-index:60;background:#0B0D14;border-bottom:1px solid var(--line)}
+    .nav{max-width:var(--maxw);margin:auto;display:flex;align-items:center;gap:14px;padding:12px 18px}
     .brand{display:flex;align-items:center;gap:10px;margin-right:auto}
-    .logo-mark{width:22px;height:22px;border-radius:6px;background:conic-gradient(from 180deg,#231b1b,var(--accent) 20%,#231b1b 60%,var(--accent) 80%,#231b1b)}
+    .mark{width:18px;height:18px;border-radius:6px;background:conic-gradient(from 200deg,#231b1b,var(--accent) 20%,#231b1b 60%,var(--accent) 80%,#231b1b)}
     .logo{font-weight:900;letter-spacing:.35px}
-    nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0}
-    nav a{font-weight:800;position:relative;white-space:nowrap}
-    nav a:after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s}
-    nav a:hover:after{width:100%}
-    .actions{display:flex;align-items:center;gap:8px}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:.55rem .85rem;border-radius:10px;border:1px solid var(--glass-b);background:linear-gradient(180deg,var(--glass),rgba(255,255,255,.02));color:var(--ink);font-weight:800;backdrop-filter:blur(6px);cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:0;color:#1b0c0b}
-    .input{border:1px solid var(--glass-b);border-radius:10px;background:rgba(255,255,255,.06);color:var(--ink);padding:.5rem .75rem;min-width:180px}
-    .hamburger{display:none;flex-direction:column;gap:4px;border:0;background:#121523;color:#fff;border-radius:10px;padding:10px}
-    .hamburger span{width:22px;height:2px;background:#fff}
-
-    /* ===== Drawer mobile (opaque) ===== */
-    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;visibility:hidden;transition:.25s;z-index:79}
-    .backdrop.show{opacity:1;visibility:visible}
-    .drawer{position:fixed;top:0;right:0;height:100%;width:min(84vw,380px);transform:translateX(100%);transition:.3s;z-index:80;background:#0E1118;border-left:1px solid var(--line);display:flex;flex-direction:column}
-    .drawer.open{transform:translateX(0)}
-    .drawer-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
-    .drawer-close{border:0;background:var(--accent);color:#1b0c0b;padding:.55rem 1rem;border-radius:10px;font-weight:900}
-    .drawer-body a{display:block;padding:16px 20px;border-bottom:1px solid var(--line);font-weight:800}
-    .drawer-body .search{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;gap:8px}
-    .drawer-body .search input{width:100%}
-    .drawer-body .filters{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px}
-
-    /* ===== Hero ===== */
-    .hero{position:relative;border-bottom:1px solid var(--line);background:
-      radial-gradient(900px 600px at -10% -10%, rgba(229,9,20,.15), transparent 60%),
-      radial-gradient(800px 500px at 120% -20%, rgba(255,105,51,.10), transparent 60%)}
-    .hero .container{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;min-height:66vh;padding-block:60px}
-    .hero-visual{position:relative;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);background:#121723}
-    .hero-visual img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/10;transform:scale(1);transition:transform .25s ease-out}
-    h1{font-weight:900;font-size:clamp(30px,5.2vw,60px);line-height:1.06;margin:0 0 10px;letter-spacing:.2px}
-    .lead{color:var(--muted);max-width:65ch}
-
-    /* Tools (search/filters) — desktop uniquement */
-    .tools{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-top:12px}
-    select{border:1px solid var(--glass-b);border-radius:10px;background:rgba(255,255,255,.06);color:var(--ink);padding:.5rem .75rem}
-
-    /* ===== Rows/Categories ===== */
-    section{padding-block:54px}
-    .row h2{margin:0 0 12px;font-size:22px}
-    .rail{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(160px,16vw,220px);gap:12px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
-    .rail::-webkit-scrollbar{height:8px}
-    .rail::-webkit-scrollbar-thumb{background:#202536;border-radius:999px}
-    .card{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#0f1220}
-    .card img{width:100%;aspect-ratio:2/3;object-fit:cover}
-    .card .grad{position:absolute;inset:auto 0 0 0;height:50%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.7))}
-    .card .meta{position:absolute;left:0;bottom:0;padding:10px}
-    .tag{display:inline-block;padding:.2rem .5rem;border:1px solid var(--glass-b);border-radius:999px;background:rgba(255,255,255,.06);font-weight:800;font-size:12px}
-    .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.25s;background:rgba(0,0,0,.18)}
-    .card:hover .play{opacity:1}
-    .play .btn{border-color:transparent;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#210b0b}
-    .badge{position:absolute;top:8px;left:8px;background:var(--accent);color:#fff;font-weight:900;font-size:12px;border-radius:6px;padding:.2rem .4rem}
-
-    /* ===== Grid Explore ===== */
+    .search{flex:1;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#0f1320;border-radius:10px;padding:8px 10px}
+    .search input{flex:1;background:transparent;border:0;outline:0;color:var(--ink)}
+    .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));color:var(--ink);border-radius:10px;padding:.55rem .85rem;font-weight:800;cursor:pointer}
+    .btn.primary{border:0;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#1b0c0b}
+    .userbox{display:flex;align-items:center;gap:8px}
+    .avatar{width:28px;height:28px;border-radius:999px;background:#1a2033;border:1px solid #2a3246;display:inline-flex;align-items:center;justify-content:center;font-weight:900}
+    .dropdown{position:relative}
+    .menu{position:absolute;right:0;top:calc(100% + 8px);background:#0E1118;border:1px solid var(--line);border-radius:12px;min-width:220px;box-shadow:var(--shadow);display:none}
+    .menu a,.menu button{display:block;width:100%;text-align:left;padding:.6rem .8rem;border:0;background:transparent;color:#d9e2f0;cursor:pointer}
+    .menu a:hover,.menu button:hover{background:#12172a}
+    .dropdown.open .menu{display:block}
+    /* Ads */
+    .ad-header-wrap{background:#0B0D14;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .ad-header{max-width:var(--maxw);margin:auto;padding:8px 18px;display:flex;justify-content:center;align-items:center;min-height:90px}
+    @media (max-width:680px){ .ad-header{min-height:60px} }
+    .ad-in{border:1px dashed #2c3550;background:#0c101b;border-radius:12px;min-height:280px;display:flex;align-items:center;justify-content:center;margin:14px 0}
+    @media (max-width:680px){ .ad-in{min-height:250px} }
+    /* Hero */
+    .hero{position:relative;border-bottom:1px solid var(--line);
+      background: radial-gradient(900px 600px at -10% -10%, rgba(229,9,20,.14), transparent 60%),
+                 radial-gradient(800px 500px at 120% -20%, rgba(255,105,51,.10), transparent 60%);}
+    .hero .wrap{max-width:var(--maxw);margin:auto;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;padding:44px 18px}
+    h1{font-weight:900;font-size:clamp(28px,5vw,56px);line-height:1.06;margin:0 0 10px}
+    .lead{color:var(--muted);max-width:65ch;margin:0 0 10px}
+    .hero-visual{border-radius:18px;overflow:hidden;background:#121723;box-shadow:var(--shadow)}
+    .hero-visual img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/9}
+    /* Sections & cards */
+    main{max-width:var(--maxw);margin:auto;padding:0 18px}
+    section{padding:26px 0} section h2{margin:0 0 10px;font-size:22px}
+    .rail{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(160px,18vw,220px);gap:12px;overflow:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+    .rail::-webkit-scrollbar{height:8px} .rail::-webkit-scrollbar-thumb{background:#1c2233;border-radius:999px}
+    .card{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--card);scroll-snap-align:start}
+    .poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:#0c0f18}
+    .grad{position:absolute;inset:auto 0 0 0;height:50%;background:linear-gradient(180deg,transparent,rgba(0,0,0,.75))}
+    .meta{position:absolute;left:0;bottom:0;padding:8px 10px;display:flex;align-items:center;gap:8px}
+    .chip{font-size:12px;color:#cbd5e1;border:1px solid #273049;background:#121829;padding:.15rem .45rem;border-radius:999px}
+    .playbar{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);opacity:0;transition:.25s}
+    .card:hover .playbar{opacity:1}
+    .fav{position:absolute;top:8px;right:8px;background:#151a27;border:1px solid #2a3246;border-radius:10px;color:#cbd5e1;font-size:12px;padding:.25rem .5rem;cursor:pointer}
+    /* Grid tweak */
     .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
     @media (max-width:1200px){.grid{grid-template-columns:repeat(5,1fr)}}
     @media (max-width:1000px){.grid{grid-template-columns:repeat(4,1fr)}}
-    @media (max-width:760px){.hero .container{grid-template-columns:1fr}.grid{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:760px){.grid{grid-template-columns:repeat(3,1fr)}}
     @media (max-width:540px){.grid{grid-template-columns:repeat(2,1fr)}}
-
-    /* ===== Modal player ===== */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.25s;z-index:90}
+    /* Modal (player & auth & legal) */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.25s;z-index:80}
     .modal.show{opacity:1;visibility:visible}
-    .modal-content{width:min(92vw,980px);aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;box-shadow:0 20px 60px rgba(0,0,0,.6)}
-    .modal-close{position:absolute;top:16px;right:16px;background:var(--accent);border:0;color:#210b0b;font-weight:900;border-radius:10px;padding:.5rem .8rem;cursor:pointer}
-
-    /* ===== Footer & misc ===== */
-    footer{padding:46px 0;border-top:1px solid var(--line);background:#0C0F15;color:#b9bfd0;margin-top:20px}
-    .foot{max-width:var(--maxw);margin:auto;text-align:center;padding-inline:24px}
-    .foot a{color:#ffa88a;text-decoration:underline}
-    .to-top{position:fixed;right:16px;bottom:16px;width:46px;height:46px;border-radius:999px;border:1px solid var(--glass-b);background:linear-gradient(180deg,var(--glass),rgba(255,255,255,.02));backdrop-filter:blur(6px);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;visibility:hidden;transition:.25s;z-index:85}
-    .to-top.show{opacity:1;visibility:visible}
-
-    /* ===== Popup crédit ===== */
-    .popup{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.70);opacity:0;visibility:hidden;transition:.3s;z-index:95}
-    .popup.show{opacity:1;visibility:visible}
-    .popup-content{background:#0F121A;border:1px solid var(--line);border-radius:20px;max-width:520px;width:92%;padding:28px;box-shadow:0 20px 50px rgba(0,0,0,.6);text-align:center}
-
-    /* ======= MOBILE OPTIM ======= */
-    /* On réduit le header sur petits écrans et on déplace la recherche dans le menu */
-    @media (max-width:820px){
-      nav{display:none}
-      .input{display:none}              /* cache la recherche du header */
-      .actions{gap:6px}
-      .btn#lang{padding:.45rem .7rem;font-size:13px}
-      .hamburger{display:flex}
-      .nav{min-height:64px}
-    }
-    @media (max-width:480px){
-      .container{padding-inline:16px}
-      .brand .logo{font-size:16px}
-      .logo-mark{width:18px;height:18px}
-      .btn{padding:.45rem .7rem;border-radius:9px;font-size:13px}
-      .hamburger{padding:8px}
-      .hero .container{gap:18px;padding-block:44px}
-    }
+    .modal-box{width:min(94vw,980px);aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+    .modal-top{position:absolute;top:12px;right:12px;display:flex;gap:8px}
+    .modal-btn{background:#1b2132;border:1px solid #2a3246;color:#e5edff;border-radius:10px;padding:.45rem .7rem;cursor:pointer}
+    .modal-btn.close{background:var(--accent);border:0;color:#1b0c0b}
+    .sheet{width:min(92vw,520px);border-radius:14px;background:#0F121A;border:1px solid var(--line);box-shadow:var(--shadow);padding:18px}
+    .sheet h3{margin:0 0 8px}
+    .sheet .row{display:flex;gap:8px;flex-wrap:wrap}
+    .input{width:100%;border:1px solid #2a3246;background:#111627;color:#e9effa;border-radius:10px;padding:.6rem .75rem}
+    .help{font-size:12px;color:#9AA3B8}
+    .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+    footer{margin:36px 0 24px;color:#aeb6cb;text-align:center}
+    footer a{color:#ffb199}
+    .muted{color:#9AA3B8}
   </style>
 </head>
 <body>
-  <!-- ===== Header ===== -->
+    <!-- === HEADER + NAVIGATION === -->
   <header>
-    <div class="container nav">
-      <a class="brand" href="#home"><span class="logo-mark"></span><span class="logo">NovaStream</span></a>
-      <nav>
-        <ul>
-          <li><a href="#trending" data-i18n="nav.trending">Tendances</a></li>
-          <li><a href="#movies" data-i18n="nav.movies">Films</a></li>
-          <li><a href="#series" data-i18n="nav.series">Séries</a></li>
-          <li><a href="#explore" data-i18n="nav.explore">Explorer</a></li>
-          <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
-        </ul>
-      </nav>
-      <div class="actions">
-        <!-- La recherche reste en desktop, mais est déplacée dans le drawer mobile -->
-        <input class="input" id="search" placeholder="Rechercher…"/>
+    <div class="nav">
+      <div class="brand"><span class="mark"></span><span class="logo">NovaStream</span></div>
+      <div class="search"><input id="q" type="search" placeholder="Rechercher un film, un genre…" /></div>
+      <div class="userbox" id="userBox">
         <button class="btn" id="lang">FR / EN</button>
-        <button class="hamburger" id="burger" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+        <button class="btn" id="btnLogin">Se connecter</button>
+        <button class="btn primary" id="btnSignup">Créer un compte</button>
       </div>
-    </div>
-    <!-- Drawer mobile -->
-    <div class="backdrop" id="backdrop"></div>
-    <aside class="drawer" id="drawer" aria-hidden="true">
-      <div class="drawer-head"><strong>Menu</strong><button class="drawer-close" id="drawerClose">Fermer ✕</button></div>
-      <div class="drawer-body">
-        <a href="#trending">Tendances</a><a href="#movies">Films</a><a href="#series">Séries</a><a href="#explore">Explorer</a><a href="#contact">Contact</a>
-        <div class="search"><input class="input" id="qMobile" placeholder="Rechercher…"></div>
-        <div class="filters">
-          <select id="genreMobile">
-            <option value="" selected>Genres</option>
-            <option>Action</option><option>Aventure</option><option>Comédie</option><option>Drame</option>
-            <option>Science-Fiction</option><option>Horreur</option><option>Romance</option><option>Animation</option>
-          </select>
-          <select id="yearMobile">
-            <option value="">Année</option><option>2025</option><option>2024</option><option>2023</option><option>Avant 2023</option>
-          </select>
+      <div class="userbox" id="userMenu" style="display:none">
+        <div class="dropdown" id="dd">
+          <button class="btn"><span class="avatar" id="av">P1</span> Mon profil</button>
+          <div class="menu" id="menu">
+            <button id="btnFavorites">Mes favoris</button>
+            <button id="btnProfiles">Gérer les profils</button>
+            <button id="btnLogout">Se déconnecter</button>
+          </div>
         </div>
       </div>
-    </aside>
+    </div>
+    <div class="ad-header-wrap">
+      <div class="ad-header">
+        <!-- Adsterra Banner Header -->
+        <div style="font-size:12px;color:#aeb6cb">Espace pub (Header)</div>
+      </div>
+    </div>
   </header>
 
-  <!-- ===== Hero ===== -->
-  <section class="hero" id="home">
-    <div class="container">
+  <!-- === HERO === -->
+  <section class="hero">
+    <div class="wrap">
       <div>
-        <h1 data-i18n="hero.title">Votre cinéma, sans quitter le canapé.</h1>
-        <p class="lead" data-i18n="hero.lead">Des milliers de titres en HD/4K (démo). Installez-vous, on appuie sur “Lecture”.</p>
-
-        <!-- Outils visibles seulement desktop (les équivalents sont dans le drawer sur mobile) -->
-        <div class="tools" id="toolsDesktop">
-          <input class="input" id="homeSearch" placeholder="Titre, acteur, réalisateur…">
-          <select id="homeGenre">
-            <option value="">Tous les genres</option>
-            <option>Action</option><option>Drame</option><option>Comédie</option><option>Science-Fiction</option>
-          </select>
-          <select id="homeYear">
-            <option value="">Année</option><option>2025</option><option>2024</option><option>2023</option><option>Avant 2023</option>
-          </select>
+        <h1>Votre cinéma, sans créer de compte pour regarder.</h1>
+        <p class="lead">Compte requis seulement pour Favoris, Profils et Reprendre.</p>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn primary" onclick="document.getElementById('rail-trending').scrollIntoView({behavior:'smooth'})">Voir les tendances</button>
+          <button class="btn" onclick="document.getElementById('grid').scrollIntoView({behavior:'smooth'})">Explorer</button>
         </div>
-
-        <div style="margin-top:12px"><span class="tag">Sans pubs</span> <span class="tag">Reprise multi-appareils</span> <span class="tag">Contrôle parental</span></div>
       </div>
       <div class="hero-visual">
-        <img src="https://picsum.photos/seed/novastream-hero/1600/1000" alt="Bandeau films en vedette"/>
+        <img src="https://images.unsplash.com/photo-1517602302552-471fe67acf66?q=80&w=1600" alt="Hero">
       </div>
     </div>
   </section>
 
-  <!-- ===== Rows ===== -->
-  <section class="container row" id="trending">
-    <h2 data-i18n="row.trending">Tendances</h2>
-    <div class="rail" id="rail-trending"></div>
-  </section>
+  <!-- === SECTIONS === -->
+  <main>
+    <section><h2>Tendances</h2><div class="rail" id="rail-trending"></div></section>
+    <section><h2>Films</h2><div class="rail" id="rail-films"></div></section>
+    <section><h2>Séries</h2><div class="rail" id="rail-series"></div></section>
+    <section><h2>Explorer</h2><div class="grid" id="grid"></div>
+      <div class="ad-in">Espace pub (in-content)</div>
+    </section>
+  </main>
 
-  <section class="container row" id="movies">
-    <h2 data-i18n="row.movies">Films</h2>
-    <div class="rail" id="rail-movies"></div>
-  </section>
-
-  <section class="container row" id="series">
-    <h2 data-i18n="row.series">Séries</h2>
-    <div class="rail" id="rail-series"></div>
-  </section>
-
-  <!-- ===== Explore grid ===== -->
-  <section class="container row" id="explore">
-    <h2 data-i18n="row.explore">Explorer tout</h2>
-    <div class="grid" id="grid-explore"></div>
-  </section>
-
-  <!-- ===== CTA Contact ===== -->
-  <section id="contact" class="container">
-    <div class="card" style="padding:18px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
-      <div>
-        <h3 style="margin:0" data-i18n="cta.title">Besoin d’une démo complète ?</h3>
-        <p class="muted" data-i18n="cta.lead">Parlez directement avec nous sur WhatsApp.</p>
-      </div>
-      <a class="btn primary" href="https://wa.me/22952964028" target="_blank" rel="noopener" data-i18n="cta.btn">Discuter</a>
-    </div>
-  </section>
-
-  <!-- ===== Footer ===== -->
+  <!-- === FOOTER === -->
   <footer>
-    <div class="foot">
-      <div>© <span id="year"></span> NovaStream (démo) — <span data-i18n="footer.rights">Tous droits réservés</span>.</div>
-      <div class="muted" data-i18n="footer.addr">Catalogue fictif. Aucune œuvre réelle n’est diffusée.</div>
-      <div class="muted">Site de démonstration créé par <strong>Martial HOSSOU</strong>, CEO de
-        <a href="https://facebook.com/creativeentreprise" target="_blank" rel="noopener"><strong>CREATIVE ENTREPRISE</strong></a>.
-      </div>
-    </div>
+    <div>© <span id="year"></span> NovaStream — Lecture via lecteur YouTube officiel.</div>
+    <div><a href="#" id="lnkCGU">CGU</a> · <a href="#" id="lnkRetrait">Retrait</a> · <a href="#" id="lnkMentions">Mentions</a></div>
   </footer>
 
-  <!-- To top -->
-  <button class="to-top" id="toTop" aria-label="Retour en haut">↑</button>
-
-  <!-- ===== Video Modal ===== -->
-  <div class="modal" id="modal">
-    <div class="modal-content" id="modalContent" role="dialog" aria-label="Lecteur vidéo"></div>
-    <button class="modal-close" id="modalClose">Fermer ✕</button>
+  <!-- === MODALES === -->
+  <!-- Player -->
+  <div class="modal" id="modalPlayer">
+    <div class="modal-box">
+      <div class="modal-top">
+        <button class="modal-btn close" id="closePlayer">Fermer ✕</button>
+      </div>
+      <div id="mountPlayer"></div>
+    </div>
   </div>
 
-  <!-- ===== Popup crédit ===== -->
-  <div class="popup" id="popup">
-    <div class="popup-content">
-      <h3>Créé par Martial HOSSOU</h3>
-      <p>Ce site a été conçu par Martial HOSSOU, CEO de CREATIVE ENTREPRISE.</p>
-      <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
-        <a class="btn primary" href="https://facebook.com/creativeentreprise" target="_blank" rel="noopener">En savoir plus</a>
-        <button class="btn" id="closePopup">Fermer</button>
+  <!-- Auth -->
+  <div class="modal" id="modalAuth">
+    <div class="sheet">
+      <h3 id="authTitle">Se connecter</h3>
+      <div class="row">
+        <input class="input" id="authEmail" type="email" placeholder="Email" />
+        <input class="input" id="authPass" type="password" placeholder="Mot de passe" />
+        <div class="help" id="authHelp">Pas de mail de validation. Mot de passe oublié disponible.</div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="authSwitch">Créer un compte</button>
+        <button class="btn primary" id="authSubmit">Valider</button>
+      </div>
+      <div class="help"><a href="#" id="authReset">Mot de passe oublié ?</a></div>
+    </div>
+  </div>
+
+  <!-- Soft-wall -->
+  <div class="modal" id="modalWall">
+    <div class="sheet">
+      <h3>Crée un compte pour enregistrer tes favoris</h3>
+      <p class="muted">Tu pourras aussi reprendre ta lecture sur tous tes appareils.</p>
+      <div class="actions">
+        <button class="btn" id="wallLater">Plus tard</button>
+        <button class="btn primary" id="wallGo">Se connecter / Créer un compte</button>
       </div>
     </div>
   </div>
 
-  <script>
-    /* ===== Demo dataset ===== */
-    const MOVIES=[
-      {id:'m1',t:'Crimson Horizon',y:2025,g:'Action',type:'Film',img:'https://picsum.photos/seed/crimson-h/600/900',yt:'https://www.youtube.com/embed/ScMzIvxBSi4'},
-      {id:'m2',t:'Neon City',y:2024,g:'Science-Fiction',type:'Film',img:'https://picsum.photos/seed/neoncity/600/900',yt:'https://www.youtube.com/embed/ysz5S6PUM-U'},
-      {id:'m3',t:'Laughter Lines',y:2023,g:'Comédie',type:'Film',img:'https://picsum.photos/seed/laughter/600/900',yt:'https://www.youtube.com/embed/2Vv-BfVoq4g'},
-      {id:'m4',t:'Deep Woods',y:2023,g:'Horreur',type:'Film',img:'https://picsum.photos/seed/deepwoods/600/900',yt:'https://www.youtube.com/embed/Z1BCujX3pw8'},
-      {id:'m5',t:'Royal Hearts',y:2025,g:'Romance',type:'Film',img:'https://picsum.photos/seed/royalhearts/600/900',yt:'https://www.youtube.com/embed/aqz-KE-bpKQ'},
-      {id:'m6',t:'Quantum Run',y:2024,g:'Science-Fiction',type:'Film',img:'https://picsum.photos/seed/quantumrun/600/900',yt:'https://www.youtube.com/embed/6ZfuNTqbHE8'}
-    ];
-    const SERIES=[
-      {id:'s1',t:'Empire of Dust',y:2024,g:'Drame',type:'Série',img:'https://picsum.photos/seed/empiredust/600/900',yt:'https://www.youtube.com/embed/sNPnbI1arSE'},
-      {id:'s2',t:'Solar Children',y:2025,g:'Aventure',type:'Série',img:'https://picsum.photos/seed/solarchild/600/900',yt:'https://www.youtube.com/embed/kXYiU_JCYtU'},
-      {id:'s3',t:'Byte & Bones',y:2023,g:'Animation',type:'Série',img:'https://picsum.photos/seed/bytebones/600/900',yt:'https://www.youtube.com/embed/dQw4w9WgXcQ'},
-      {id:'s4',t:'Harbor Lights',y:2024,g:'Drame',type:'Série',img:'https://picsum.photos/seed/harborlights/600/900',yt:'https://www.youtube.com/embed/tAGnKpE4NCI'},
-      {id:'s5',t:'Zero Signal',y:2025,g:'Action',type:'Série',img:'https://picsum.photos/seed/zerosignal/600/900',yt:'https://www.youtube.com/embed/5NV6Rdv1a3I'},
-      {id:'s6',t:'Moon Hotel',y:2023,g:'Comédie',type:'Série',img:'https://picsum.photos/seed/moonhotel/600/900',yt:'https://www.youtube.com/embed/JGwWNGJdvx8'}
-    ];
-    const CATALOG=[...MOVIES,...SERIES];
+  <!-- Legal -->
+  <div class="modal" id="modalLegal">
+    <div class="sheet">
+      <h3 id="legalTitle">Document</h3>
+      <div class="help" id="legalBody" style="max-height:60vh;overflow:auto">
+        <p><strong>CGU :</strong> NovaStream référence des vidéos YouTube légales. Aucune vidéo n'est hébergée ici.</p>
+        <p><strong>Retrait :</strong> Indiquez l’URL, la preuve de droits et vos coordonnées. Nous dépublierons après vérification.</p>
+        <p><strong>Mentions :</strong> Contact : contact@exemple.com.</p>
+      </div>
+      <div class="actions"><button class="btn primary" id="legalClose">Fermer</button></div>
+    </div>
+  </div>
+    <!-- === SCRIPT SUPABASE === -->
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-    /* ===== Utilities ===== */
-    const $=s=>document.querySelector(s);
-    const $$=s=>document.querySelectorAll(s);
-    const gridExplore=$('#grid-explore');
-    const rails={ trending:$('#rail-trending'), movies:$('#rail-movies'), series:$('#rail-series') };
+    // === CONFIG SUPABASE (à remplacer) ===
+    const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    function card(item,badge=''){
-      return `
-      <article class="card" data-title="${item.t.toLowerCase()}" data-genre="${item.g}" data-year="${item.y}" data-type="${item.type}">
-        ${badge?`<span class="badge">${badge}</span>`:''}
-        <img src="${item.img}" alt="${item.t} — ${item.type}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+    /* ===== DOM helpers ===== */
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+    const rails = { trending: $('#rail-trending'), films: $('#rail-films'), series: $('#rail-series') };
+    const grid = $('#grid'); const q = $('#q');
+    $('#year').textContent = new Date().getFullYear();
+
+    /* ===== Player modal ===== */
+    const mPlayer = $('#modalPlayer'), mountPlayer = $('#mountPlayer');
+    $('#closePlayer').addEventListener('click', ()=>{mPlayer.classList.remove('show');mountPlayer.innerHTML='';});
+    function openPlayer(videoId,title){
+      mPlayer.classList.add('show');
+      mountPlayer.innerHTML=`<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" title="${title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    }
+
+    /* ===== Auth modal ===== */
+    const mAuth=$('#modalAuth'), authTitle=$('#authTitle'), authEmail=$('#authEmail'), authPass=$('#authPass');
+    let authMode='login';
+    $('#btnLogin').addEventListener('click',()=>openAuth('login'));
+    $('#btnSignup').addEventListener('click',()=>openAuth('signup'));
+    $('#authSwitch').addEventListener('click',()=>openAuth(authMode==='login'?'signup':'login'));
+    $('#authReset').addEventListener('click',async e=>{
+      e.preventDefault();
+      const email=authEmail.value.trim(); if(!email) return alert("Entrez votre email");
+      const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+      if(error) alert(error.message); else alert("Email de réinitialisation envoyé");
+    });
+    function openAuth(mode){authMode=mode;authTitle.textContent=mode==='login'?'Se connecter':'Créer un compte';mAuth.classList.add('show');}
+    function closeAuth(){mAuth.classList.remove('show');}
+
+    $('#authSubmit').addEventListener('click',async()=>{
+      const email=authEmail.value.trim(),password=authPass.value;
+      if(!email||!password) return alert("Email et mot de passe requis");
+      if(authMode==='signup'){const {error}=await supabase.auth.signUp({email,password});if(error)return alert(error.message);}
+      else {const {error}=await supabase.auth.signInWithPassword({email,password});if(error)return alert(error.message);}
+      const {data:{session}}=await supabase.auth.getSession();
+      if(session){await ensureDefaultProfile();$('#userBox').style.display='none';$('#userMenu').style.display='flex';closeAuth();}
+    });
+
+    $('#btnLogout').addEventListener('click',async()=>{
+      await supabase.auth.signOut();
+      $('#userMenu').style.display='none';$('#userBox').style.display='flex';
+      localStorage.removeItem('NS_PROFILE_ID');
+    });
+
+    async function ensureDefaultProfile(){
+      try{await supabase.rpc('fn_init_account');}catch{}
+      const {data:profs}=await supabase.from('profiles').select('id,name').limit(1);
+      if(!profs||profs.length===0){await supabase.rpc('fn_create_profile',{profile_name:'Profil 1'});}
+      const {data:profs2}=await supabase.from('profiles').select('id,name').limit(1);
+      if(profs2&&profs2[0]){localStorage.setItem('NS_PROFILE_ID',profs2[0].id);$('#av').textContent=(profs2[0].name||'P1').slice(0,2).toUpperCase();}
+    }
+    (async()=>{const {data:{session}}=await supabase.auth.getSession();if(session){$('#userBox').style.display='none';$('#userMenu').style.display='flex';await ensureDefaultProfile();}})();
+
+    /* ===== Legal modal ===== */
+    const mLegal=$('#modalLegal');
+    $('#lnkCGU').addEventListener('click',e=>{e.preventDefault();openLegal('CGU','<p>Utilisation autorisée via YouTube.</p>');});
+    $('#lnkRetrait').addEventListener('click',e=>{e.preventDefault();openLegal('Retrait','<p>Contact: contact@exemple.com.</p>');});
+    $('#lnkMentions').addEventListener('click',e=>{e.preventDefault();openLegal('Mentions','<p>Responsable: Vous-même.</p>');});
+    $('#legalClose').addEventListener('click',()=>mLegal.classList.remove('show'));
+    function openLegal(title,html){$('#legalTitle').textContent=title;$('#legalBody').innerHTML=html;mLegal.classList.add('show');}
+
+    /* ===== Soft-wall ===== */
+    $('#wallLater').addEventListener('click',()=>$('#modalWall').classList.remove('show'));
+    $('#wallGo').addEventListener('click',()=>{ $('#modalWall').classList.remove('show'); openAuth('login'); });
+
+    /* ===== RENDERING ===== */
+    function card(item){
+      const poster=item.thumbnail_url||`https://img.youtube.com/vi/${item.youtube_id}/hqdefault.jpg`;
+      const g=item.genres?.[0]||'—';
+      return `<article class="card" data-title="${(item.title||'').toLowerCase()}">
+        <img class="poster" src="${poster}" alt="${item.title}">
         <div class="grad"></div>
-        <div class="meta"><div class="tag">${item.g}</div></div>
-        <div class="play"><button class="btn primary" data-play="${item.yt}" data-title="${item.t}">▶ Lire</button></div>
+        <div class="meta"><span class="chip">${g}</span><span class="chip">${item.year||''}</span></div>
+        <button class="fav" data-fav="${item.id}">+ Favori</button>
+        <div class="playbar"><button class="btn primary" data-play="${item.youtube_id}" data-title="${item.title}">▶ Lire</button></div>
       </article>`;
     }
-    function render(){
-      rails.trending.innerHTML=[MOVIES[0],SERIES[1],MOVIES[2],SERIES[4],MOVIES[4],SERIES[0]].map((x,i)=>card(x,i<3?'Nouveau':'Top')).join('');
-      rails.movies.innerHTML=MOVIES.map(x=>card(x)).join('');
-      rails.series.innerHTML=SERIES.map(x=>card(x)).join('');
-      gridExplore.innerHTML=CATALOG.map(x=>card(x)).join('');
+    async function fetchVideos(where){let qv=supabase.from('videos').select('*').limit(30);if(where)qv=where(qv);const {data}=await qv;return data||[];}
+    async function render(){
+      const [tr,films,series,all]=await Promise.all([
+        fetchVideos(),fetchVideos(q=>q.eq('type','Film')),fetchVideos(q=>q.eq('type','Série')),fetchVideos()
+      ]);
+      $('#rail-trending').innerHTML=tr.map(card).join('');
+      $('#rail-films').innerHTML=films.map(card).join('');
+      $('#rail-series').innerHTML=series.map(card).join('');
+      $('#grid').innerHTML=all.map(card).join('');
     }
     render();
 
-    /* ===== Search & filters (desktop + mobile) ===== */
-    const dSearch=$('#search'), homeSearch=$('#homeSearch'), homeGenre=$('#homeGenre'), homeYear=$('#homeYear');
-    const mSearch=$('#qMobile'), mGenre=$('#genreMobile'), mYear=$('#yearMobile');
+    /* ===== Search ===== */
+    q.addEventListener('input',()=>{clearTimeout(q._t);q._t=setTimeout(()=>{const term=q.value.toLowerCase();$$('.card').forEach(el=>{el.style.display=!term||el.dataset.title.includes(term)?'':'none';});},120)});
 
-    function filterAll(q='',genre='',year=''){
-      const ql=q.trim().toLowerCase();
-      $$('.card').forEach(el=>{
-        const t=el.dataset.title, g=el.dataset.genre, y=el.dataset.year;
-        const okQ=!ql || t.includes(ql);
-        const okG=!genre || g===genre;
-        const okY=!year || (year==='Avant 2023' ? (+y<2023) : (y===year));
-        el.style.display=(okQ && okG && okY)?'':'none';
-      });
-    }
-    function doFilter(){
-      const qv=(dSearch?.value||homeSearch?.value||mSearch?.value||'');
-      const gv=(homeGenre?.value||mGenre?.value||'');
-      const yv=(homeYear?.value||mYear?.value||'');
-      filterAll(qv,gv,yv);
-    }
-    [dSearch,homeSearch,homeGenre,homeYear,mSearch,mGenre,mYear].forEach(el=>el&&el.addEventListener('input',()=>{clearTimeout(el._t); el._t=setTimeout(doFilter,140)}));
-
-    /* ===== Modal YouTube player ===== */
-    const modal=$('#modal'), modalContent=$('#modalContent'), modalClose=$('#modalClose');
-    function openPlayer(url,title){
-      modal.classList.add('show');
-      modalContent.innerHTML=`<iframe width="100%" height="100%" src="${url}?autoplay=1&rel=0&modestbranding=1" title="${title}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;" allowfullscreen></iframe>`;
-    }
-    function closePlayer(){ modal.classList.remove('show'); modalContent.innerHTML=''; }
-    document.body.addEventListener('click',e=>{
-      const btn=e.target.closest('[data-play]'); if(btn){ openPlayer(btn.getAttribute('data-play'), btn.getAttribute('data-title')); }
+    /* ===== Events (Play + Fav) ===== */
+    document.body.addEventListener('click',async e=>{
+      const p=e.target.closest('[data-play]'); if(p){openPlayer(p.dataset.play,p.dataset.title);return;}
+      const fav=e.target.closest('[data-fav]'); if(fav){
+        const {data:{session}}=await supabase.auth.getSession();
+        if(!session){$('#modalWall').classList.add('show');return;}
+        const profileId=localStorage.getItem('NS_PROFILE_ID'); if(!profileId)return alert("Profil introuvable");
+        const videoId=fav.dataset.fav;
+        const {error}=await supabase.from('favorites').insert({profile_id:profileId,video_id:videoId});
+        if(error){if(error.code==='23505')alert("Déjà favori"); else alert(error.message);return;}
+        fav.textContent='✓ Favori';
+      }
     });
-    modalClose.addEventListener('click',closePlayer);
-    modal.addEventListener('click',e=>{ if(e.target===modal) closePlayer(); });
-
-    /* ===== Drawer mobile ===== */
-    const drawer=$('#drawer'),burger=$('#burger'),backdrop=$('#backdrop'),drawerClose=$('#drawerClose');
-    const openDrawer=()=>{drawer.classList.add('open');backdrop.classList.add('show');drawer.setAttribute('aria-hidden','false')}
-    const closeDrawer=()=>{drawer.classList.remove('open');backdrop.classList.remove('show');drawer.setAttribute('aria-hidden','true')}
-    burger.addEventListener('click',openDrawer);drawerClose.addEventListener('click',closeDrawer);backdrop.addEventListener('click',closeDrawer);
-
-    /* ===== Back to top ===== */
-    const toTop=$('#toTop'); const showTop=()=>{scrollY>400?toTop.classList.add('show'):toTop.classList.remove('show')}
-    window.addEventListener('scroll',showTop,{passive:true}); toTop.addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'}));
-
-    /* ===== i18n ===== */
-    const I18N={
-      fr:{'nav.trending':'Tendances','nav.movies':'Films','nav.series':'Séries','nav.explore':'Explorer','nav.contact':'Contact',
-          'hero.title':'Votre cinéma, sans quitter le canapé.','hero.lead':'Des milliers de titres en HD/4K (démo). Installez-vous, on appuie sur “Lecture”.',
-          'row.trending':'Tendances','row.movies':'Films','row.series':'Séries','row.explore':'Explorer tout',
-          'cta.title':'Besoin d’une démo complète ?','cta.lead':'Parlez directement avec nous sur WhatsApp.','cta.btn':'Discuter',
-          'footer.rights':'Tous droits réservés','footer.addr':'Catalogue fictif. Aucune œuvre réelle n’est diffusée.'},
-      en:{'nav.trending':'Trending','nav.movies':'Movies','nav.series':'Series','nav.explore':'Explore','nav.contact':'Contact',
-          'hero.title':'Your cinema, without leaving the couch.','hero.lead':'Thousands of HD/4K titles (demo). Get comfy — we’ll hit play.',
-          'row.trending':'Trending','row.movies':'Movies','row.series':'Series','row.explore':'Explore all',
-          'cta.title':'Want a full demo?','cta.lead':'Chat with us on WhatsApp.','cta.btn':'Chat',
-          'footer.rights':'All rights reserved','footer.addr':'Fictitious catalog. No real works are streamed.'}
-    };
-    function setLocale(loc){
-      document.querySelectorAll('[data-i18n]').forEach(el=>{
-        const k=el.getAttribute('data-i18n'); if(I18N[loc][k]) el.textContent=I18N[loc][k];
-      });
-      document.documentElement.lang=(loc==='fr')?'fr':'en';
-      localStorage.setItem('NOVA_LANG',loc);
-    }
-    const langBtn=$('#lang');
-    const saved=localStorage.getItem('NOVA_LANG')||(navigator.language?.startsWith('fr')?'fr':'en');
-    setLocale(saved);
-    langBtn.addEventListener('click',()=>setLocale(localStorage.getItem('NOVA_LANG')==='fr'?'en':'fr'));
-
-    /* ===== Popup 10s ===== */
-    document.getElementById('year').textContent=new Date().getFullYear();
-    const popup=$('#popup'),closePopup=$('#closePopup');
-    setTimeout(()=>popup.classList.add('show'),10000);
-    closePopup?.addEventListener('click',()=>popup.classList.remove('show'));
   </script>
 </body>
 </html>
