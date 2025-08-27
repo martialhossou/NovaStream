@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NovaStream — Admin</title>
+  <meta name="theme-color" content="#0A0B10"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0A0B10;--panel:#0E1118;--ink:#E9EFFA;--muted:#A5AEC6;--line:#202538;--accent:#E50914;--accent2:#FF6933;--radius:14px;--maxw:1200px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    a{color:inherit;text-decoration:none}
+    header{position:sticky;top:0;z-index:30;background:#0B0D14;border-bottom:1px solid var(--line)}
+    .nav{max-width:var(--maxw);margin:auto;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:10px;align-items:center;font-weight:900}
+    .mark{width:18px;height:18px;border-radius:6px;background:conic-gradient(from 200deg,#231b1b,var(--accent) 25%,#231b1b 60%,var(--accent) 85%)}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:.55rem .85rem;border-radius:10px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));cursor:pointer;color:#fff;font-weight:800}
+    .btn.primary{border:0;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#1b0c0b}
+    .btn.danger{background:#33151a;border-color:#54242b;color:#ffb3b3}
+    main{max-width:var(--maxw);margin:16px auto;padding:0 14px;display:grid;gap:16px}
+    .card{border:1px solid var(--line);background:#0E1118;border-radius:14px;padding:14px}
+    h2{margin:0 0 10px}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #1e2539;padding:8px 6px;text-align:left}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    input,select,textarea{border:1px solid #2a3246;background:#111627;color:#e9effa;border-radius:10px;padding:.55rem .7rem}
+    textarea{width:100%;min-height:100px}
+    .hidden{display:none !important}
+    .muted{color:#a5aec6}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{padding:.45rem .75rem;border:1px solid var(--line);border-radius:999px;cursor:pointer}
+    .tab.active{background:linear-gradient(90deg,var(--accent),var(--accent2));border:0;color:#1b0c0b}
+    .danger-text{color:#ffa4a4}
+    .ok{color:#63f2b2}
+    .warn{color:#ffd480}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand"><span class="mark"></span><span>NovaStream — Admin</span></div>
+      <div class="row">
+        <button class="btn" id="btnLogout">Se déconnecter</button>
+        <a class="btn" href="/" target="_blank" rel="noopener">Voir le site</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div><strong id="who"></strong> <span class="muted" id="role"></span></div>
+        <div class="tabs">
+          <button class="tab active" data-tab="users">Utilisateurs</button>
+          <button class="tab" data-tab="videos">Vidéos</button>
+          <button class="tab" data-tab="reports">Retraits</button>
+          <button class="tab" data-tab="notif">Notifications</button>
+          <button class="tab" data-tab="settings">Paramètres</button>
+        </div>
+      </div>
+    </div>
+
+    <section id="tab-users" class="card">
+      <h2>Utilisateurs & Rôles</h2>
+      <div class="row">
+        <input id="assignEmail" placeholder="email@exemple.com"/>
+        <select id="assignRole">
+          <option value="admin">admin</option>
+          <option value="moderator">moderator</option>
+          <option value="user">user</option>
+        </select>
+        <button class="btn primary" id="btnAssign">Assigner</button>
+        <button class="btn" id="btnRemove">Retirer</button>
+      </div>
+      <div style="margin-top:12px;overflow:auto">
+        <table id="tblUsers">
+          <thead><tr><th>Email</th><th>Créé</th><th>Dernier login</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-videos" class="card hidden">
+      <h2>Vidéos</h2>
+      <div class="row">
+        <input id="csvFile" type="file" accept=".csv"/>
+        <button class="btn primary" id="btnImport">Importer CSV</button>
+      </div>
+      <div class="muted" style="margin-top:6px">Attendu: colonnes <code>title,youtube_id,youtube_url,type,year,genres,categories,countries,languages,duration_min,published_at,thumbnail_url,description</code>. Les arrays au format <code>{"Action","Drame"}</code>.</div>
+      <div style="margin-top:12px;overflow:auto">
+        <table id="tblVideos">
+          <thead><tr><th>Titre</th><th>Type</th><th>Année</th><th>Masqué</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-reports" class="card hidden">
+      <h2>Demandes de retrait</h2>
+      <div style="overflow:auto">
+        <table id="tblReports">
+          <thead><tr><th>Vidéo</th><th>Reporter</th><th>Raison</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tab-notif" class="card hidden">
+      <h2>Notifications</h2>
+      <div class="row">
+        <select id="nScope">
+          <option value="all">Tous</option>
+          <option value="role">Par rôle</option>
+          <option value="user">Par utilisateur</option>
+        </select>
+        <input id="nRole" placeholder="role (si scope=role)" />
+        <input id="nUserEmail" placeholder="email cible (si scope=user)" />
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="nTitle" placeholder="Titre" style="flex:1"/>
+        <input id="nActionUrl" placeholder="Lien d'action (optionnel)" style="flex:1"/>
+      </div>
+      <div style="margin-top:8px"><textarea id="nBody" placeholder="Message"></textarea></div>
+      <div class="row" style="margin-top:8px">
+        <input id="nMediaUrl" placeholder="Image/Vidéo URL (optionnel)" style="flex:1"/>
+        <input id="nStart" type="datetime-local" />
+        <input id="nEnd" type="datetime-local" />
+        <button class="btn primary" id="btnSendNotif">Diffuser</button>
+      </div>
+      <div class="muted" style="margin-top:6px">Les utilisateurs connectés verront un pop-up si le front public écoute la table <code>notifications</code>.</div>
+    </section>
+
+    <section id="tab-settings" class="card hidden">
+      <h2>Paramètres</h2>
+      <div class="row">
+        <input id="gaId" placeholder="GA4 Measurement ID (G-XXXX)" />
+        <button class="btn" id="btnSaveGA">Enregistrer GA</button>
+      </div>
+      <div class="muted" style="margin-top:8px">L'analytics sera visible dans ton compte Google Analytics. (Optionnel: on peut afficher des mini métriques ici plus tard.)</div>
+    </section>
+  </main>
+
+  <!-- Auth modal -->
+  <div id="mAuth" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center">
+    <div class="card" style="width:min(92vw,420px)">
+      <h2>Connexion Admin</h2>
+      <div class="row">
+        <input id="email" placeholder="Email"/>
+        <input id="pass" type="password" placeholder="Mot de passe"/>
+      </div>
+      <div class="row" style="margin-top:8px;justify-content:flex-end">
+        <button class="btn" id="btnLogin">Se connecter</button>
+      </div>
+      <div class="muted" style="margin-top:8px">Accès réservé aux comptes possédant le rôle <strong>admin</strong>.</div>
+      <div id="authErr" class="danger-text" style="margin-top:6px"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    const SUPABASE_URL = "https://flbswnzfutxcudcgbrjp.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsYnN3bnpmdXR4Y3VkY2dicmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyOTEwMDcsImV4cCI6MjA3MTg2NzAwN30.L7ZjKIzoyFdbRYuTlXXBD0-NgCPc3poWgEws1ibqUAc";
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+    const mAuth=$('#mAuth'), who=$('#who'), role=$('#role');
+
+    async function gate(){
+      const { data:{session} } = await sb.auth.getSession();
+      if(!session){ mAuth.style.display='flex'; return false; }
+      const { data:isAdmin, error } = await sb.rpc('admin_is_admin');
+      if(error){ console.warn(error); }
+      if(!isAdmin){ $('#authErr').textContent = "Accès refusé (rôle admin requis)."; mAuth.style.display='flex'; return false; }
+      who.textContent = session.user.email || 'Admin';
+      role.textContent = 'admin';
+      mAuth.style.display='none';
+      return true;
+    }
+
+    // Login
+    $('#btnLogin').addEventListener('click', async ()=>{
+      const email=$('#email').value.trim(), password=$('#pass').value;
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if(error){ $('#authErr').textContent=error.message; return; }
+      if(await gate()) init();
+    });
+
+    // Logout
+    $('#btnLogout').addEventListener('click', async ()=>{
+      await sb.auth.signOut();
+      location.reload();
+    });
+
+    // Tabs
+    $$('.tab').forEach(t=>t.addEventListener('click', ()=>{
+      $$('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const tab=t.dataset.tab;
+      ['users','videos','reports','notif','settings'].forEach(id=>{
+        $('#tab-'+id).classList.toggle('hidden', id!==tab);
+      });
+    }));
+
+    // Users
+    async function loadUsers(){
+      const { data, error } = await sb.rpc('admin_list_users');
+      if(error){ console.warn(error); return; }
+      const tb=$('#tblUsers tbody'); tb.innerHTML='';
+      (data||[]).forEach(u=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${u.email||'—'}</td><td>${new Date(u.created_at).toLocaleString()}</td><td>${u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString():'—'}</td>`;
+        tb.appendChild(tr);
+      });
+    }
+    $('#btnAssign').addEventListener('click', async ()=>{
+      const email=$('#assignEmail').value.trim(), r=$('#assignRole').value;
+      if(!email) return alert('email requis');
+      const { error } = await sb.rpc('admin_assign_role', { p_email: email, p_role: r });
+      if(error) return alert(error.message);
+      alert('Rôle assigné');
+      loadUsers();
+    });
+    $('#btnRemove').addEventListener('click', async ()=>{
+      const email=$('#assignEmail').value.trim(), r=$('#assignRole').value;
+      if(!email) return alert('email requis');
+      const { error } = await sb.rpc('admin_remove_role', { p_email: email, p_role: r });
+      if(error) return alert(error.message);
+      alert('Rôle retiré');
+      loadUsers();
+    });
+
+    // Videos
+    async function loadVideos(){
+      const { data, error } = await sb.from('videos').select('id,title,type,year,is_hidden').order('created_at',{ascending:false}).limit(200);
+      if(error){ console.warn(error); return; }
+      const tb=$('#tblVideos tbody'); tb.innerHTML='';
+      (data||[]).forEach(v=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${v.title}</td><td>${v.type}</td><td>${v.year||''}</td><td>${v.is_hidden?'Oui':'Non'}</td><td class="row"><button class="btn" data-hide="${v.id}">${v.is_hidden?'Afficher':'Masquer'}</button><button class="btn danger" data-del="${v.id}">Supprimer</button></td>`;
+        tb.appendChild(tr);
+      });
+    }
+    document.body.addEventListener('click', async (e)=>{
+      const hide=e.target.closest('[data-hide]'); if(hide){
+        const id=hide.getAttribute('data-hide');
+        // Toggle current state by fetching row
+        const { data:rows } = await sb.from('videos').select('is_hidden').eq('id', id).single();
+        const newHidden = !(rows?.is_hidden);
+        const { error } = await sb.from('videos').update({ is_hidden: newHidden }).eq('id', id);
+        if(error) return alert(error.message);
+        loadVideos(); return;
+      }
+      const del=e.target.closest('[data-del]'); if(del){
+        const id=del.getAttribute('data-del');
+        if(!confirm('Supprimer définitivement cette vidéo ?')) return;
+        const { error } = await sb.from('videos').delete().eq('id', id);
+        if(error) return alert(error.message);
+        loadVideos(); return;
+      }
+    });
+
+    // CSV import (basique)
+    function parseCSV(text){
+      const lines=text.split(/\r?\n/).filter(l=>l.trim().length);
+      if(!lines.length) return { headers:[], rows:[] };
+      const sep = lines[0].includes(';') ? ';' : ',';
+      const headers = lines[0].split(sep).map(h=>h.trim());
+      const rows = lines.slice(1).map(l=>{
+        const cells = l.split(sep).map(c=>c.trim());
+        const obj={}; headers.forEach((h,i)=>obj[h]=cells[i]??''); return obj;
+      });
+      return { headers, rows };
+    }
+    async function batchInsert(rows, size=200){
+      for(let i=0;i<rows.length;i+=size){
+        const chunk = rows.slice(i,i+size);
+        const { error } = await sb.from('videos').insert(chunk, { returning: 'minimal' });
+        if(error) throw error;
+      }
+    }
+    $('#btnImport').addEventListener('click', async ()=>{
+      const file=$('#csvFile').files[0];
+      if(!file) return alert('Choisis un fichier CSV');
+      const text = await file.text();
+      const { headers, rows } = parseCSV(text);
+      const required = ["title","youtube_id","youtube_url","type","year","genres","categories","countries","languages","duration_min","published_at","thumbnail_url","description"];
+      const ok = required.every(k=>headers.includes(k));
+      if(!ok) return alert('Colonnes manquantes. Attendu: '+required.join(','));
+      try {
+        await batchInsert(rows, 200);
+        alert('Import terminé');
+        loadVideos();
+      } catch(err){
+        alert(err.message);
+      }
+    });
+
+    // Reports
+    async function loadReports(){
+      const { data, error } = await sb.from('reports').select('id,video_id,reporter_email,reason,status').order('created_at',{ascending:false}).limit(200);
+      if(error){ console.warn(error); return; }
+      const tb=$('#tblReports tbody'); tb.innerHTML='';
+      (data||[]).forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${r.video_id||''}</td><td>${r.reporter_email||''}</td><td>${r.reason||''}</td><td>${r.status}</td><td class="row"><button class="btn" data-r-ok="${r.id}">Clore</button><button class="btn danger" data-r-rej="${r.id}">Rejeter</button></td>`;
+        tb.appendChild(tr);
+      });
+    }
+    document.body.addEventListener('click', async (e)=>{
+      const ok=e.target.closest('[data-r-ok]'); if(ok){
+        const id=ok.getAttribute('data-r-ok');
+        const { data:u } = await sb.auth.getUser();
+        const { error } = await sb.from('reports').update({ status:'closed', handled_by: u?.user?.id||null, handled_at: new Date().toISOString() }).eq('id', id);
+        if(error) return alert(error.message);
+        loadReports(); return;
+      }
+      const rej=e.target.closest('[data-r-rej]'); if(rej){
+        const id=rej.getAttribute('data-r-rej');
+        const { data:u } = await sb.auth.getUser();
+        const { error } = await sb.from('reports').update({ status:'rejected', handled_by: u?.user?.id||null, handled_at: new Date().toISOString() }).eq('id', id);
+        if(error) return alert(error.message);
+        loadReports(); return;
+      }
+    });
+
+    // Notifications
+    async function sendNotif(){
+      const scope=$('#nScope').value;
+      const title=$('#nTitle').value.trim();
+      const body=$('#nBody').value.trim();
+      const action_url=$('#nActionUrl').value.trim()||null;
+      const media_url=$('#nMediaUrl').value.trim()||null;
+      const nRole=$('#nRole').value.trim()||null;
+      const email=$('#nUserEmail').value.trim()||null;
+      if(!title||!body) return alert('Titre et message requis');
+      let target_user_id=null;
+      if(scope==='user'){
+        const { data } = await sb.rpc('admin_list_users');
+        const hit = (data||[]).find(u=>u.email===email);
+        if(!hit) return alert('Utilisateur introuvable pour cet email');
+        target_user_id = hit.id;
+      }
+      const starts_at = $('#nStart').value ? new Date($('#nStart').value).toISOString() : new Date().toISOString();
+      const ends_at = $('#nEnd').value ? new Date($('#nEnd').value).toISOString() : null;
+      const { error } = await sb.from('notifications').insert({
+        scope, target_role: scope==='role'?nRole:null, target_user_id, title, body, media_url, action_url, starts_at, ends_at
+      });
+      if(error) return alert(error.message);
+      alert('Notification diffusée');
+    }
+    $('#btnSendNotif').addEventListener('click', sendNotif);
+
+    // Settings (GA)
+    async function loadGA(){
+      const { data } = await sb.from('site_settings').select('value').eq('key','ga').single();
+      if(data?.value?.id) $('#gaId').value = data.value.id;
+    }
+    $('#btnSaveGA').addEventListener('click', async ()=>{
+      const id=$('#gaId').value.trim();
+      const { error } = await sb.from('site_settings').upsert({ key:'ga', value: { id } });
+      if(error) return alert(error.message);
+      alert('Enregistré');
+    });
+
+    function initTabs(){
+      ['users','videos','reports','notif','settings'].forEach(id=>{
+        $('#tab-'+id).classList.toggle('hidden', id!=='users');
+      });
+    }
+
+    async function init(){
+      initTabs();
+      await loadUsers();
+      await loadVideos();
+      await loadReports();
+      await loadGA();
+    }
+
+    if(await gate()) init();
+  </script>
+</body>
+</html>
